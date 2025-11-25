@@ -2,7 +2,6 @@ package main
 
 import(
 	"os"
-	"fmt"
 	"log/slog"
 	"file-access-service/internal/database"
 )
@@ -13,6 +12,12 @@ func main(){
 	db, err := database.New()
 	if err != nil {
 		lgr.Error("failed to initialize database", "error", err)
+		os.Exit(1)
 	}
-	fmt.Println(db)
+	err = database.Migrate(db)
+	if err != nil {
+		lgr.Error("Migration failed: %v", err)
+		os.Exit(1)
+	}
+	lgr.Info("migration completed successfully")
 }
