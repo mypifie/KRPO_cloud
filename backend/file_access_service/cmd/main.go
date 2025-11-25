@@ -16,6 +16,7 @@ import(
 	"file-access-service/internal/repository"
 	"file-access-service/internal/handler"
 	"file-access-service/internal/logger"
+	"file-access-service/internal/validator"
 )
 
 func main(){
@@ -35,7 +36,8 @@ func main(){
 
 	
 	r := repository.NewRepository(db)
-	h := handler.NewHandler(lgr, r)
+	v := validator.NewValidator()
+	h := handler.NewHandler(lgr, v, r)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
