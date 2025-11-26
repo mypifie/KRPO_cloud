@@ -42,3 +42,9 @@ func (r *Repository) AddAccess(ctx context.Context, fileID string, userID string
 
     return nil
 }
+
+func (r *Repository) CheckAccess(ctx context.Context, fileID string, userID string) error{
+    var access model.Access
+    res := r.db.Where("user_id = ? and file_id = ?", userID, fileID).First(&access)
+    return res.Error
+}

@@ -3,9 +3,12 @@ package handler
 import(
 	"log/slog"
 	"net/http"
+	"fmt"
+	"errors"
 	"encoding/json"
 	
 	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
 
 	"file-access-service/internal/repository"
 	"file-access-service/internal/validator"
@@ -61,7 +64,7 @@ func (h *Handler) addFile(w http.ResponseWriter, r *http.Request){
 
 func (h *Handler) addAccess(w http.ResponseWriter, r *http.Request){
 	const pth = "handler.addAccess"
-	var req AddAccessReq
+	var req AddAccess
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondWithValidationError(w, pth, err, h.lgr)
 		return
@@ -80,11 +83,29 @@ func (h *Handler) addAccess(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	_ = json.NewEncoder(w).Encode(req)
-	w.Write([]byte("addAccess"))
 }
 
 func (h *Handler) checkAccess(w http.ResponseWriter, r *http.Request){
-	w.Write([]byte("checkAccess"))
+	const pth = "handler.team.checkAccess"
+	fileID := r.URL.Query().Get("fileID")
+	userID := r.URL.Query().Get("userID")
+	if fileID == "" || userID == ""{
+		respondWithValidationError(w, pth, fmt.Errorf("miss fileID or userID in query"), h.lgr)
+		return
+	}
+
+	if err := h.repo.CheckAccess(r.Context(), fileID, userID); err != nil{
+		if errors.Is(err, gorm.ErrRecordNotFound){
+			respondWithError(w, http.StatusForbidden, pth, err, ErrorResp{Error: "user does not have access"}, h.lgr)
+		}
+		respondWithError(w, http.StatusInternalServerError, pth, err, ErrorResp{Error: "internal server error"}, h.lgr)
+		return
+	}
+	
+	resp := AddAccess{FileID: fileID, UserID: userID}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func respondWithError(w http.ResponseWriter, statusCode int, pth string, err error, resp ErrorResp, lgr *slog.Logger) {
