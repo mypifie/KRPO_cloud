@@ -29,3 +29,16 @@ func (r *Repository) CreateFile(ctx context.Context, fileID string, userID strin
 
     return nil
 }
+
+func (r *Repository) AddAccess(ctx context.Context, fileID string, userID string) error {
+    access := model.Access{
+        FileID: fileID,
+        UserID: userID,
+    }
+
+    if err := r.db.WithContext(ctx).Create(&access).Error; err != nil {
+        return err
+    }
+
+    return nil
+}

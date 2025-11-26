@@ -30,6 +30,7 @@ func (h *Handler) InitRoutes(r *chi.Mux) *chi.Mux {
 		r.Post("/file", h.addFile)
 		r.Post("/file/{fileID}/user", h.addAccess)
 		r.Get("/file/{fileID}/user/{userID}", h.checkAccess)
+		//get список юзеров с доступом к файлу
 	})
 	return r
 }
@@ -59,6 +60,26 @@ func (h *Handler) addFile(w http.ResponseWriter, r *http.Request){
 }
 
 func (h *Handler) addAccess(w http.ResponseWriter, r *http.Request){
+	const pth = "handler.addAccess"
+	var req AddAccessReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithValidationError(w, pth, err, h.lgr)
+		return
+	}
+
+	if err := h.validator.Validate(&req); err != nil {
+		respondWithValidationError(w, pth, validator.GetValidationErrors(err), h.lgr)
+		return
+	}
+
+	if err := h.repo.AddAccess(r.Context(), req.FileID, req.UserID); err != nil{
+		respondWithError(w, http.StatusInternalServerError, pth, err, ErrorResp{Error: "internal server error"}, h.lgr)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(req)
 	w.Write([]byte("addAccess"))
 }
 
