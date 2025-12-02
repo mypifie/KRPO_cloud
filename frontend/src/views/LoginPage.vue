@@ -16,7 +16,7 @@
             <Input id="name" type="password" placeholder="Введите пароль" />
           </div>
           <div class="flex flex-col space-y-1.5">
-            <span>Нет аккаунта? <RouterLink class="text-blue-400" to="/">Зарегистрироваться</RouterLink></span>
+            <span>Нет аккаунта? <RouterLink class="text-blue-400" to="/registration">Зарегистрироваться</RouterLink></span>
           </div>
         </div>
       </form>

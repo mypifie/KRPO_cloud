@@ -20,7 +20,7 @@
             <Input id="name" type="password" placeholder="Введите пароль" />
           </div>
           <div class="flex flex-col space-y-1.5">
-            <span>Уже есть аккаунт? <RouterLink class="text-blue-400" to="/reg">Войти</RouterLink></span>
+            <span>Уже есть аккаунт? <RouterLink class="text-blue-400" to="/login">Войти</RouterLink></span>
           </div>
         </div>
       </form>

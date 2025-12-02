@@ -4,8 +4,8 @@ import LoginPage from "@/views/LoginPage.vue";
 import LastFilesPage from '@/views/LastFilesPage.vue'
 
 const routes = [
-  { path: '/login', component: RegistrationPage },
-  { path: '/registration', component: LoginPage },
+  { path: '/registration', component: RegistrationPage },
+  { path: '/login', component: LoginPage },
   { path: '/last-files', component: LastFilesPage },
 ]
 

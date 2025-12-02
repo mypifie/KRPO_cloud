@@ -46,7 +46,6 @@ import {
 import { Button } from '@/shared/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 
-defineProps<>({})
 
 const items = [
   {
