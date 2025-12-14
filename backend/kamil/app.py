@@ -2,11 +2,25 @@ import json
 import fastapi
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 # Импортируем роутеры
 import Router_Auth
+from database_main import create_tables
 
-app = FastAPI(redirect_slashes=False)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # При запуске приложения
+    print("Создание таблиц...")
+    await create_tables()
+    print("Таблицы созданы!")
+    yield
+    # При остановке приложения
+    print("Приложение остановлено")
+
+
+app = FastAPI(redirect_slashes=False, lifespan=lifespan)
 
 # Включаем роутеры
 app.include_router(Router_Auth.router)
@@ -15,12 +29,7 @@ app.include_router(Router_Auth.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
+        "http://localhost:1337",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -34,7 +43,6 @@ async def root():
     return {"message": "Main page"}
 
 
-# Если нужно защитить роуты в app.py, импортируйте зависимости из auth
 @app.get("/protected")
 async def protected_route(current_user=Depends(Router_Auth.get_current_user_db)):
     return {"message": "This is a protected route", "user": current_user}

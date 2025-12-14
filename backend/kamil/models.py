@@ -27,18 +27,18 @@ class AuthUsers(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str]
     password_hash: Mapped[str]
-    is_email_verified: Mapped[bool]
+    is_email_verified: Mapped[bool] = mapped_column(default=False)
 
 
 class UserProfiles(Base):
     __tablename__ = "user_profiles"
-    id: Mapped[int] = mapped_column(ForeignKey("ayth_users.id"), index=True)
+
+    id: Mapped[int] = mapped_column(
+        ForeignKey("auth_users.id"), primary_key=True, index=True
+    )
     username: Mapped[str]
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_blocked: Mapped[bool] = mapped_column(default=False)
-    last_login: Mapped[DateTime] = mapped_column(
-        DateTime, default=datetime.utcnow, server_default=text("CURRENT_TIMESTAMP")
-    )
 
 
 # class Lessons(Base):
