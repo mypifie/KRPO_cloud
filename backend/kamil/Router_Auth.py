@@ -110,7 +110,6 @@ async def register(request: Request, db: AsyncSession = Depends(get_async_sessio
 
         return {
             "access_token": access_token,
-            "token_type": "bearer",
             "user": {
                 "email": auth_user.email,
                 "username": user_profile.username,
@@ -168,7 +167,6 @@ async def login(request: Request, db: AsyncSession = Depends(get_async_session))
         user_profile = await get_user_profile_by_id(db, auth_user.id)
         return {
             "access_token": access_token,
-            "token_type": "bearer",
             "user": {
                 "email": auth_user.email,
                 "username": user_profile.username,
