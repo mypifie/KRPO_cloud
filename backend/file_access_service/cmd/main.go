@@ -10,6 +10,7 @@ import(
 	"context"
 
 	"github.com/go-chi/chi/v5"
+    "github.com/go-chi/cors"
 	"github.com/go-chi/chi/v5/middleware"
 
 	"file-access-service/internal/database"
@@ -40,6 +41,14 @@ func main(){
 	h := handler.NewHandler(lgr, v, r)
 
 	router := chi.NewRouter()
+	router.Use(cors.Handler(cors.Options{
+    AllowedOrigins:   []string{"http://localhost:3000"},
+    AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+    AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+    ExposedHeaders:   []string{"Link"},
+    AllowCredentials: true,
+    MaxAge:           300,
+	}))
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)

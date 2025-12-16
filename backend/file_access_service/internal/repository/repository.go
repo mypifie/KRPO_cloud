@@ -48,3 +48,15 @@ func (r *Repository) CheckAccess(ctx context.Context, fileID string, userID stri
     res := r.db.Where("user_id = ? and file_id = ?", userID, fileID).First(&access)
     return res.Error
 }
+
+func (r *Repository) GetAccessList(ctx context.Context, fileID string) ([]string, error){
+    var accesses []model.Access
+    if err := r.db.Model(&model.Access{}).Where("file_id = ?", fileID).Find(&accesses).Error; err != nil{
+        return nil, err
+    }
+    users := make([]string, len(accesses))
+    for i, a := range accesses{
+        users[i] = a.UserID
+    }
+    return users, nil
+}

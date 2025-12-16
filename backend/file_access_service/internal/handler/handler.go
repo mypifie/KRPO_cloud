@@ -33,7 +33,7 @@ func (h *Handler) InitRoutes(r *chi.Mux) *chi.Mux {
 		r.Post("/file", h.addFile)
 		r.Post("/file/{fileID}/user", h.addAccess)
 		r.Get("/file/{fileID}/user/{userID}", h.checkAccess)
-		//get список юзеров с доступом к файлу
+		r.Get("/file/{fileID}", h.getAccessList)
 	})
 	return r
 }
@@ -87,8 +87,8 @@ func (h *Handler) addAccess(w http.ResponseWriter, r *http.Request){
 
 func (h *Handler) checkAccess(w http.ResponseWriter, r *http.Request){
 	const pth = "handler.team.checkAccess"
-	fileID := r.URL.Query().Get("fileID")
-	userID := r.URL.Query().Get("userID")
+	fileID := chi.URLParam(r, "fileID")
+	userID := chi.URLParam(r, "userID")
 	if fileID == "" || userID == ""{
 		respondWithValidationError(w, pth, fmt.Errorf("miss fileID or userID in query"), h.lgr)
 		return
@@ -97,12 +97,33 @@ func (h *Handler) checkAccess(w http.ResponseWriter, r *http.Request){
 	if err := h.repo.CheckAccess(r.Context(), fileID, userID); err != nil{
 		if errors.Is(err, gorm.ErrRecordNotFound){
 			respondWithError(w, http.StatusForbidden, pth, err, ErrorResp{Error: "user does not have access"}, h.lgr)
+			return
 		}
 		respondWithError(w, http.StatusInternalServerError, pth, err, ErrorResp{Error: "internal server error"}, h.lgr)
 		return
 	}
 	
 	resp := AddAccess{FileID: fileID, UserID: userID}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+func (h *Handler) getAccessList(w http.ResponseWriter, r *http.Request){
+	const pth = "handler.team.getAccessList"
+	fileID := chi.URLParam(r, "fileID")
+	if fileID == ""{
+		respondWithValidationError(w, pth, fmt.Errorf("miss fileID in query"), h.lgr)
+		return
+	}
+
+	users, err := h.repo.GetAccessList(r.Context(), fileID)
+	if err != nil{
+		respondWithError(w, http.StatusInternalServerError, pth, err, ErrorResp{Error: "internal server error"}, h.lgr)
+		return
+	}
+	
+	resp := AccessList{FileID: fileID, Users: users}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(resp)
