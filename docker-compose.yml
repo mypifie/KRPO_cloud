@@ -1,0 +1,8 @@
+services:
+  file-access-service:
+    container_name: "file-access-service"
+    build: ./backend/file_access_service
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./backend/file_access_service/data:/app/data:rw
