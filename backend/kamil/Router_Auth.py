@@ -8,19 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from database_main import get_async_session
-from models import Users
+from models import *
 from config import settings
 from database_ORM import *
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="", tags=["auth"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-class TokenData:
-    def __init__(self, username: Optional[str] = None):
-        self.username = username
+pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -77,7 +72,7 @@ async def register(request: Request, db: AsyncSession = Depends(get_async_sessio
         json_data = await request.json()
 
         # Валидация обязательных полей
-        required_fields = ["email", "password_hash", "username"]
+        required_fields = ["email", "password", "username"]
         for field in required_fields:
             if field not in json_data:
                 error_msg = f"Отсутствует обязательное поле: {field}"
@@ -96,24 +91,31 @@ async def register(request: Request, db: AsyncSession = Depends(get_async_sessio
         # Добавление пользователя
         hashed_password = get_password_hash(json_data["password"])
 
-        auth_user = AuthUsers(email=json_data["email"], password=hashed_password)
+        auth_user = AuthUsers(email=json_data["email"], password_hash=hashed_password)
         db.add(auth_user)
         await db.commit()
         await db.refresh(auth_user)
 
-        auth_user_id = await get_user_by_email(db, json_data["email"]).id
+        # Добавление профиля
+        auth_user = await get_user_by_email(db, json_data["email"])
 
-        user_profile = UserProfiles(id=auth_user_id, username=json_data["username"])
+        user_profile = UserProfiles(id=auth_user.id, username=json_data["username"])
         db.add(user_profile)
         await db.commit()
         await db.refresh(user_profile)
+
         # Создание токена
+        user_profile = await get_user_profile_by_id(db, auth_user.id)
         access_token = create_access_token(data={"sub": auth_user.email})
 
         return {
             "access_token": access_token,
-            "token_type": "bearer",
-            "user": {"id": auth_user.id, "email": auth_user.email},
+            "user": {
+                "email": auth_user.email,
+                "username": user_profile.username,
+                "isAdmin": user_profile.is_admin,
+                "isBlocked": user_profile.is_blocked,
+            },
         }
 
     except HTTPException as he:
@@ -162,10 +164,15 @@ async def login(request: Request, db: AsyncSession = Depends(get_async_session))
         # Создание токена
         access_token = create_access_token(data={"sub": auth_user.email})
 
+        user_profile = await get_user_profile_by_id(db, auth_user.id)
         return {
             "access_token": access_token,
-            "token_type": "bearer",
-            "user": {"id": auth_user.id, "email": auth_user.email},
+            "user": {
+                "email": auth_user.email,
+                "username": user_profile.username,
+                "isAdmin": user_profile.is_admin,
+                "isBlocked": user_profile.is_blocked,
+            },
         }
 
     except HTTPException as he:

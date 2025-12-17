@@ -6,12 +6,13 @@ import MainPage from '@/views/MainPage.vue'
 import ArchivePage from '@/views/ArchivePage.vue'
 import MarkedPage from '@/views/MarkedPage.vue'
 import SettingsPage from '@/views/SettingsPage.vue'
+import { useUserStore } from '@/stores/user.ts'
 
 const routes = [
-  { path: '/registration', component: RegistrationPage },
-  { path: '/login', component: LoginPage },
+  { path: '/registration', name: 'Registration', component: RegistrationPage },
+  { path: '/login', name: 'Login', component: LoginPage },
   { path: '/last-files', component: LastFilesPage },
-  { path: '/', component: MainPage },
+  { path: '/', name: 'Main', component: MainPage },
   { path: '/archived-files', component: ArchivePage },
   { path: '/marked-files', component: MarkedPage },
   { path: '/settings', component: SettingsPage },
@@ -22,5 +23,15 @@ const router = createRouter({
   routes: routes,
 })
 
+router.beforeEach((to, from) => {
+  const userStore = useUserStore()
+  if (
+    userStore.isAuth &&
+    ( to.name === 'Login' ||
+    to.name === 'Registration' )
+  ) {
+    return { name: 'Main' }
+  }
+})
 
 export default router

@@ -21,3 +21,14 @@ async def get_user_by_email(db: AsyncSession, email: str):
         print(f"ОШИБКА В {get_caller_name()}")
         await db.rollback()
         raise e
+
+
+async def get_user_profile_by_id(db: AsyncSession, id: int):
+    try:
+        result = await db.execute(select(UserProfiles).where(UserProfiles.id == id))
+        return result.scalar_one_or_none()
+
+    except SQLAlchemyError as e:
+        print(f"ОШИБКА В {get_caller_name()}")
+        await db.rollback()
+        raise e
