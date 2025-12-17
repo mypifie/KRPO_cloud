@@ -1,14 +1,16 @@
 <template>
-  <SidebarProvider v-if="isAuth">
-    <AppSidebar :items="items" />
+  <SidebarProvider>
+    <AppSidebar
+      :username="userStore.userData?.username"
+      :items="items"
+      :is-auth="userStore.isAuth"
+      @logout="userStore.logOut"
+    />
     <SidebarTrigger />
     <main class="w-screen h-screen flex flex-row items-center justify-center">
       <RouterView />
     </main>
   </SidebarProvider>
-  <main v-else class="w-screen h-screen flex flex-row items-center justify-center">
-    <RouterView />
-  </main>
 </template>
 
 <script setup lang="ts">
@@ -17,7 +19,7 @@ import { SidebarProvider, SidebarTrigger } from '@/shared/components/ui/sidebar'
 import { useUserStore } from '@/stores/user.ts'
 import { Archive, Clock, Files, Settings, Star } from 'lucide-vue-next'
 
-const { isAuth } = useUserStore()
+const userStore = useUserStore()
 
 const items = [
   {
@@ -46,4 +48,5 @@ const items = [
     icon: Settings,
   },
 ]
+
 </script>

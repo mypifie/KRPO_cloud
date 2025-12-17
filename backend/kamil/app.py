@@ -29,7 +29,7 @@ app.include_router(Router_Auth.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:1337",
+        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],
